@@ -1,35 +1,34 @@
-import { NextApiRequest, NextApiResponse } from 'next';
+import { NextResponse } from 'next/server';
 
-// Simulação de um "banco de dados" em memória
-const jogadores: { jogador: string; pontuacao: number }[] = [
-  { jogador: "Jogador 1", pontuacao: 3 },
-  { jogador: "Jogador 2", pontuacao: 5 },
-  { jogador: "Jogador 3", pontuacao: 2 },
+const jogadores = [
+  { jogador: 'Jogador 1', pontuacao: 3 },
+  { jogador: 'Jogador 2', pontuacao: 5 },
+  { jogador: 'Jogador 3', pontuacao: 2 },
 ];
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method === 'PUT') {
-    const { jogador, pontuacao } = req.body;
+export async function PUT(request: Request) {
+  try {
+    const { jogador, pontuacao } = await request.json();
 
     // Validação dos dados recebidos
     if (!jogador || typeof pontuacao !== 'number') {
-      return res.status(400).json({ mensagem: 'Dados inválidos' });
+      return NextResponse.json({ mensagem: 'Dados inválidos' }, { status: 400 });
     }
 
-    // Procura o jogador no "banco de dados"
+    // Atualizando a pontuação do jogador
     const jogadorIndex = jogadores.findIndex((j) => j.jogador === jogador);
-
     if (jogadorIndex === -1) {
-      return res.status(404).json({ mensagem: 'Jogador não encontrado' });
+      return NextResponse.json({ mensagem: 'Jogador não encontrado' }, { status: 404 });
     }
 
-    // Atualiza a pontuação do jogador
     jogadores[jogadorIndex].pontuacao = pontuacao;
 
-    // Retorna uma resposta de sucesso
-    return res.status(200).json({ mensagem: 'Jogador atualizado com sucesso!', jogador: jogadores[jogadorIndex] });
-  } else {
-    // Método não permitido
-    return res.status(405).json({ mensagem: 'Método não permitido' });
+    return NextResponse.json({
+      mensagem: 'Jogador atualizado com sucesso!',
+      jogador: jogadores[jogadorIndex],
+    });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
+    return NextResponse.json({ mensagem: 'Erro no servidor', erro: error.message }, { status: 500 });
   }
 }
